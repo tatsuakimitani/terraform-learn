@@ -1,29 +1,23 @@
-locals {
-  example_instance_type = "t3.micro"
+provider "aws"{
+  region = "ap-northeast-1"
 }
 
-# variable "example_instance_type" {
-#   default     = "t3.micro"
-#   description = "Instance Typeのデフォルト値"
-# }
-
-resource "aws_instance" "terraform-learn" {
-
-  ami = "ami-0f9ae750e8274075b"
-  instance_type = local.example_instance_type
-  tags = {
-    Name = "example"
+data "aws_ami" "recent_amazon_linux_2" {
+  most_recent = true
+  owners = ["amazon"]
+  filter {
+    name = "name"
+    values = ["amzn2-ami-hvm-2.0.????????-x86?64-gp2"]
   }
-  
-  user_data = <<EOF
-    #!/bin/bash
-    yum install -y httpd
-    systemctl start httpd.service
-  EOF
 
-  
+  filter{
+    name = "state"
+    values = ["available"]
+  }
 }
 
-output "instance_id" {
-  value       = aws_instance.terraform-learn.id
+resource "aws_instance" "example"{
+  ami = data.aws_ami.recent_amazon_linux_2.image_id
+  instance_type = "t3.micro"
+
 }
